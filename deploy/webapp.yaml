@@ -1,6 +1,6 @@
 # The demo web app, in the same namespace as SurrealDB so that a Kasten restore of the
 # namespace brings back the app together with its data.
-# Replace IMAGE with the image you built and pushed (see README.md).
+# The image is built by .github/workflows/image.yaml; pin the sha-<commit> tag.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,7 +25,7 @@ spec:
         seccompProfile: {type: RuntimeDefault}
       containers:
         - name: webapp
-          image: IMAGE
+          image: ghcr.io/michaelcade/surrealdb-webapp:sha-1546923
           ports:
             - {name: http, containerPort: 8080}
           env:
