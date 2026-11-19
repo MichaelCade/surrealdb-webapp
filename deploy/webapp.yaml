@@ -1,0 +1,76 @@
+# The demo web app, in the same namespace as SurrealDB so that a Kasten restore of the
+# namespace brings back the app together with its data.
+# Replace IMAGE with the image you built and pushed (see README.md).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: surrealdb-webapp
+  namespace: surrealdb-test
+  labels:
+    app.kubernetes.io/name: surrealdb-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: surrealdb-webapp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: surrealdb-webapp
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: webapp
+          image: IMAGE
+          ports:
+            - {name: http, containerPort: 8080}
+          env:
+            - {name: SURREAL_URL, value: ws://surrealdb:8000}
+            - {name: SURREAL_NS, value: demo}
+            - {name: SURREAL_DB, value: shop}
+            - name: SURREAL_USER
+              valueFrom:
+                secretKeyRef: {name: surrealdb-demo, key: username}
+            - name: SURREAL_PASS
+              valueFrom:
+                secretKeyRef: {name: surrealdb-demo, key: password}
+          readinessProbe:
+            httpGet: {path: /api/status, port: http}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          resources:
+            requests: {cpu: 20m, memory: 32Mi}
+            limits: {memory: 128Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: surrealdb-webapp
+  namespace: surrealdb-test
+spec:
+  selector:
+    app.kubernetes.io/name: surrealdb-webapp
+  ports:
+    - {name: http, port: 80, targetPort: http}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: surrealdb-webapp
+  namespace: surrealdb-test
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: shop.192.168.169.190.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: surrealdb-webapp, port: {number: 80}}

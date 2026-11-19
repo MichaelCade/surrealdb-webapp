@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SurrealDB Multi-Model Shop</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div>
+    <h1>SurrealDB multi-model shop</h1>
+    <p id="conn" class="muted">Connecting…</p>
+  </div>
+  <div class="actions">
+    <label class="toggle"><input type="checkbox" id="traffic"> Generate orders</label>
+    <button id="incident" class="danger">Simulate incident</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel wide" id="health-panel">
+    <h2>Health <span id="health-summary" class="badge">…</span></h2>
+    <p class="muted">One check per data model, against the seeded data. Traffic never turns a check red; the incident does, and a good restore turns them green again.</p>
+    <table id="health"><thead><tr><th>Model</th><th>Check</th><th>Expected</th><th>Actual</th><th></th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="panel">
+    <h2>Catalogue <span class="tag">relational · document</span></h2>
+    <table id="products"><thead><tr><th>Product</th><th>Category</th><th class="num">Price</th></tr></thead><tbody></tbody></table>
+    <h3>Customers <span class="muted">(total spend from a stored function)</span></h3>
+    <table id="customers"><thead><tr><th>Name</th><th>City</th><th class="num">Spend</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="panel">
+    <h2>Who bought what <span class="tag">graph</span></h2>
+    <svg id="graph" viewBox="0 0 460 380" role="img" aria-label="Customers linked to the products they ordered"></svg>
+    <p class="muted">Click a product: customers who bought it also bought…</p>
+    <ul id="recs" class="list"></ul>
+  </section>
+
+  <section class="panel">
+    <h2>Review search <span class="tag">full-text</span></h2>
+    <form id="search-form"><input id="q" value="quiet" placeholder="Search reviews"><button>Search</button></form>
+    <ul id="hits" class="list"></ul>
+  </section>
+
+  <section class="panel">
+    <h2>Similar products <span class="tag">vector</span></h2>
+    <select id="similar-of"></select>
+    <ul id="similar" class="list"></ul>
+    <p class="muted">Each product has a 6-number embedding (kitchen, electric, heat, blend, coffee, budget), searched with an HNSW index and cosine distance.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Nearest store <span class="tag">geospatial</span></h2>
+    <svg id="map" viewBox="0 0 460 300" role="img" aria-label="Stores and customers on a map of western Europe"></svg>
+    <table id="nearest"><thead><tr><th>Customer</th><th>Nearest store</th><th class="num">km</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="panel">
+    <h2>Live orders <span class="tag">time series · live query</span></h2>
+    <svg id="chart" viewBox="0 0 460 140" role="img" aria-label="Orders per minute, last 30 minutes"></svg>
+    <ul id="feed" class="list feed"></ul>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

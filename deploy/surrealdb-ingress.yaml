@@ -1,0 +1,24 @@
+# Access route to SurrealDB for SurrealDB Studio (desktop) and other clients,
+# following the cluster's existing pattern: Traefik, <app>.<traefik LB IP>.nip.io.
+#
+# Plain HTTP on the home-lab LAN, like the other routes on this cluster. The root
+# password crosses the network unencrypted: do not copy this to a network you do
+# not control without adding TLS.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: surrealdb
+  namespace: surrealdb-test
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: surrealdb.192.168.169.190.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: surrealdb
+                port:
+                  number: 8000
