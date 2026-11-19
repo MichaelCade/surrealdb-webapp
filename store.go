@@ -151,8 +151,33 @@ func (s *store) session(ctx context.Context) error {
 			if err := db.Health(ctx); err != nil {
 				return fmt.Errorf("health check: %w", err)
 			}
+			// A restore removes and re-imports the database, which drops its live queries
+			// while the connection stays up. Start a new session when ours is gone.
+			lives, err := one[map[string]any](ctx, s, "RETURN (INFO FOR TABLE order_event).lives;", nil)
+			if err != nil {
+				return fmt.Errorf("live query check: %w", err)
+			}
+			if !hasLive(lives, liveID.String()) {
+				return fmt.Errorf("live query %s on order_event no longer exists (database replaced?); live queries now: %v", liveID.String(), lives)
+			}
 		}
 	}
+}
+
+// hasLive reports whether the table's live queries include id. The keys are UUIDs;
+// compare without dashes or a u'' prefix so the check does not depend on formatting.
+func hasLive(lives map[string]any, id string) bool {
+	norm := func(s string) string {
+		s = strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(s, "u'"), "u\""), "'")
+		return strings.ToLower(strings.ReplaceAll(strings.Trim(s, "\""), "-", ""))
+	}
+	want := norm(id)
+	for k := range lives {
+		if norm(k) == want {
+			return true
+		}
+	}
+	return false
 }
 
 func recordIDOf(v any) (string, bool) {
