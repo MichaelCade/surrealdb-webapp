@@ -25,7 +25,7 @@ spec:
         seccompProfile: {type: RuntimeDefault}
       containers:
         - name: webapp
-          image: ghcr.io/michaelcade/surrealdb-webapp:sha-1546923
+          image: ghcr.io/michaelcade/surrealdb-webapp:sha-52d89bb
           ports:
             - {name: http, containerPort: 8080}
           env:
